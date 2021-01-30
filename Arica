@@ -1,1 +1,1861 @@
-
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "name": "wine_data_cleansing_ipynb",
+      "provenance": [],
+      "collapsed_sections": [],
+      "authorship_tag": "ABX9TyNTf+wsqIrZOz+ZwHEBvh4s",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    }
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/ladyj-dev/Wine_All_You_Want/blob/main/Arica\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "9L-cdW-F9xYL"
+      },
+      "source": [
+        "Data cleansing to view shape, features, data types, drop null/missing values and duplicates. Adding columns and prepping for ML."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "vkBf7OmU81RL"
+      },
+      "source": [
+        "#import dependencies\r\n",
+        "import pandas as pd\r\n",
+        "import numpy as np\r\n",
+        "import matplotlib.pyplot as plt"
+      ],
+      "execution_count": 1,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "gSVmHuKL-TLI"
+      },
+      "source": [
+        "# bring in csv from AWS bucket(url)\r\n",
+        "url = \"https://winedata150k.s3.us-east-2.amazonaws.com/winemag-data_first150k.csv\"\r\n"
+      ],
+      "execution_count": 2,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 296
+        },
+        "id": "xjDuZpFqAkZn",
+        "outputId": "bddea8d8-077b-40c7-912c-8e3f0113309a"
+      },
+      "source": [
+        "# create pd dataframe\r\n",
+        "wine_all_you_want_df = pd.read_csv(url)\r\n",
+        "wine_all_you_want_df.head()"
+      ],
+      "execution_count": 3,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Unnamed: 0</th>\n",
+              "      <th>country</th>\n",
+              "      <th>description</th>\n",
+              "      <th>designation</th>\n",
+              "      <th>points</th>\n",
+              "      <th>price</th>\n",
+              "      <th>province</th>\n",
+              "      <th>region_1</th>\n",
+              "      <th>region_2</th>\n",
+              "      <th>variety</th>\n",
+              "      <th>winery</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>0</td>\n",
+              "      <td>US</td>\n",
+              "      <td>This tremendous 100% varietal wine hails from ...</td>\n",
+              "      <td>Martha's Vineyard</td>\n",
+              "      <td>96</td>\n",
+              "      <td>235.0</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Napa Valley</td>\n",
+              "      <td>Napa</td>\n",
+              "      <td>Cabernet Sauvignon</td>\n",
+              "      <td>Heitz</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>1</td>\n",
+              "      <td>Spain</td>\n",
+              "      <td>Ripe aromas of fig, blackberry and cassis are ...</td>\n",
+              "      <td>Carodorum Selección Especial Reserva</td>\n",
+              "      <td>96</td>\n",
+              "      <td>110.0</td>\n",
+              "      <td>Northern Spain</td>\n",
+              "      <td>Toro</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>Tinta de Toro</td>\n",
+              "      <td>Bodega Carmen Rodríguez</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>2</td>\n",
+              "      <td>US</td>\n",
+              "      <td>Mac Watson honors the memory of a wine once ma...</td>\n",
+              "      <td>Special Selected Late Harvest</td>\n",
+              "      <td>96</td>\n",
+              "      <td>90.0</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Knights Valley</td>\n",
+              "      <td>Sonoma</td>\n",
+              "      <td>Sauvignon Blanc</td>\n",
+              "      <td>Macauley</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>3</td>\n",
+              "      <td>US</td>\n",
+              "      <td>This spent 20 months in 30% new French oak, an...</td>\n",
+              "      <td>Reserve</td>\n",
+              "      <td>96</td>\n",
+              "      <td>65.0</td>\n",
+              "      <td>Oregon</td>\n",
+              "      <td>Willamette Valley</td>\n",
+              "      <td>Willamette Valley</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Ponzi</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>4</td>\n",
+              "      <td>France</td>\n",
+              "      <td>This is the top wine from La Bégude, named aft...</td>\n",
+              "      <td>La Brûlade</td>\n",
+              "      <td>95</td>\n",
+              "      <td>66.0</td>\n",
+              "      <td>Provence</td>\n",
+              "      <td>Bandol</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>Provence red blend</td>\n",
+              "      <td>Domaine de la Bégude</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "   Unnamed: 0 country  ...             variety                   winery\n",
+              "0           0      US  ...  Cabernet Sauvignon                    Heitz\n",
+              "1           1   Spain  ...       Tinta de Toro  Bodega Carmen Rodríguez\n",
+              "2           2      US  ...     Sauvignon Blanc                 Macauley\n",
+              "3           3      US  ...          Pinot Noir                    Ponzi\n",
+              "4           4  France  ...  Provence red blend     Domaine de la Bégude\n",
+              "\n",
+              "[5 rows x 11 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 3
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "05earXSjCW_b",
+        "outputId": "51a6afb8-1c7e-4389-e339-ca93c4d71b2e"
+      },
+      "source": [
+        "# view shape of data(# of columns and rows)\r\n",
+        "wine_all_you_want_df.shape"
+      ],
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "(150930, 11)"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 4
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "sDfDBotNCrUL",
+        "outputId": "27105abb-233b-464f-9163-6a37fd931fd2"
+      },
+      "source": [
+        "# first step look for duplicates in features to began data cleansing process\r\n",
+        "wine_all_you_want_df.columns"
+      ],
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "Index(['Unnamed: 0', 'country', 'description', 'designation', 'points',\n",
+              "       'price', 'province', 'region_1', 'region_2', 'variety', 'winery'],\n",
+              "      dtype='object')"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 5
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 296
+        },
+        "id": "mShzxRZLDCAi",
+        "outputId": "6ef980ae-6b85-4ee0-daef-a5c50c86c6ee"
+      },
+      "source": [
+        "# df.tail to confirm observation that feature \"Unnamed\" appears to be the same as index\r\n",
+        "wine_all_you_want_df.tail()"
+      ],
+      "execution_count": 6,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>Unnamed: 0</th>\n",
+              "      <th>country</th>\n",
+              "      <th>description</th>\n",
+              "      <th>designation</th>\n",
+              "      <th>points</th>\n",
+              "      <th>price</th>\n",
+              "      <th>province</th>\n",
+              "      <th>region_1</th>\n",
+              "      <th>region_2</th>\n",
+              "      <th>variety</th>\n",
+              "      <th>winery</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>150925</th>\n",
+              "      <td>150925</td>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Many people feel Fiano represents southern Ita...</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Feudi di San Gregorio</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150926</th>\n",
+              "      <td>150926</td>\n",
+              "      <td>France</td>\n",
+              "      <td>Offers an intriguing nose with ginger, lime an...</td>\n",
+              "      <td>Cuvée Prestige</td>\n",
+              "      <td>91</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>H.Germain</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150927</th>\n",
+              "      <td>150927</td>\n",
+              "      <td>Italy</td>\n",
+              "      <td>This classic example comes from a cru vineyard...</td>\n",
+              "      <td>Terre di Dora</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Terredora</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150928</th>\n",
+              "      <td>150928</td>\n",
+              "      <td>France</td>\n",
+              "      <td>A perfect salmon shade, with scents of peaches...</td>\n",
+              "      <td>Grand Brut Rosé</td>\n",
+              "      <td>90</td>\n",
+              "      <td>52.0</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Gosset</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150929</th>\n",
+              "      <td>150929</td>\n",
+              "      <td>Italy</td>\n",
+              "      <td>More Pinot Grigios should taste like this. A r...</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>90</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>Northeastern Italy</td>\n",
+              "      <td>Alto Adige</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>Pinot Grigio</td>\n",
+              "      <td>Alois Lageder</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "        Unnamed: 0 country  ...          variety                 winery\n",
+              "150925      150925   Italy  ...      White Blend  Feudi di San Gregorio\n",
+              "150926      150926  France  ...  Champagne Blend              H.Germain\n",
+              "150927      150927   Italy  ...      White Blend              Terredora\n",
+              "150928      150928  France  ...  Champagne Blend                 Gosset\n",
+              "150929      150929   Italy  ...     Pinot Grigio          Alois Lageder\n",
+              "\n",
+              "[5 rows x 11 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 6
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "d_v1YPGWDf-3"
+      },
+      "source": [
+        "# \"Unnamed\" is definitely the same as index so drop it like it's hot\r\n",
+        "wine_all_you_want_df.drop(columns=['Unnamed: 0'], inplace=True)"
+      ],
+      "execution_count": 7,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "_nT97pBNEIQ-",
+        "outputId": "a2c95924-0d89-4ae4-ee83-9a8f3becafa9"
+      },
+      "source": [
+        "# visualize updated features\r\n",
+        "wine_all_you_want_df.columns\r\n"
+      ],
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "Index(['country', 'description', 'designation', 'points', 'price', 'province',\n",
+              "       'region_1', 'region_2', 'variety', 'winery'],\n",
+              "      dtype='object')"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 8
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "jvowVDw1FLes",
+        "outputId": "c69d2ce8-baea-448e-97fa-93f5bddb3c35"
+      },
+      "source": [
+        "# view data info \r\n",
+        "wine_all_you_want_df.info()"
+      ],
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "<class 'pandas.core.frame.DataFrame'>\n",
+            "RangeIndex: 150930 entries, 0 to 150929\n",
+            "Data columns (total 10 columns):\n",
+            " #   Column       Non-Null Count   Dtype  \n",
+            "---  ------       --------------   -----  \n",
+            " 0   country      150925 non-null  object \n",
+            " 1   description  150930 non-null  object \n",
+            " 2   designation  105195 non-null  object \n",
+            " 3   points       150930 non-null  int64  \n",
+            " 4   price        137235 non-null  float64\n",
+            " 5   province     150925 non-null  object \n",
+            " 6   region_1     125870 non-null  object \n",
+            " 7   region_2     60953 non-null   object \n",
+            " 8   variety      150930 non-null  object \n",
+            " 9   winery       150930 non-null  object \n",
+            "dtypes: float64(1), int64(1), object(8)\n",
+            "memory usage: 11.5+ MB\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "ewsu0R24Fmj3"
+      },
+      "source": [
+        "Observations: \r\n",
+        "1. points and price are already in the format I need them to be (int/float)\r\n",
+        "2. some features have null/missing values\r\n",
+        "3. there are half as many region 2's as region 1\r\n",
+        "4. there are roughly 13,000+ rows with no price\r\n",
+        "5. there are over 45,000 rows with no name\r\n",
+        "6. there are 5 wines without a country\r\n"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "pnq0o7EnHHRW"
+      },
+      "source": [
+        "Began cleansing data based on observations above"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "FJ735narFtuV"
+      },
+      "source": [
+        "# drop region 2\r\n",
+        "wine_all_you_want_df.drop(columns=['region_2'], inplace=True)"
+      ],
+      "execution_count": 10,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "zIJsdcoHFVbj",
+        "outputId": "58eaaf88-8ca0-4c2b-dab3-cdf4db4e59e5"
+      },
+      "source": [
+        "# visualize updated features\r\n",
+        "wine_all_you_want_df.columns"
+      ],
+      "execution_count": 11,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "Index(['country', 'description', 'designation', 'points', 'price', 'province',\n",
+              "       'region_1', 'variety', 'winery'],\n",
+              "      dtype='object')"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 11
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "dAZe_yfFHfPp",
+        "outputId": "c97bcece-e0fc-4e03-c1a3-9b50baa3df7e"
+      },
+      "source": [
+        "# drop missing price values to normalize data\r\n",
+        "wine_all_you_want_df.dropna(subset=['price'], inplace=True)\r\n",
+        "wine_all_you_want_df.count(0)"
+      ],
+      "execution_count": 12,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "country        137230\n",
+              "description    137235\n",
+              "designation     94924\n",
+              "points         137235\n",
+              "price          137235\n",
+              "province       137230\n",
+              "region_1       114393\n",
+              "variety        137235\n",
+              "winery         137235\n",
+              "dtype: int64"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 12
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "EOq0ryVgH9gj",
+        "outputId": "62bcc7ee-51de-4d8e-8f1d-90ff612721e4"
+      },
+      "source": [
+        "# drop wines wines with no country\r\n",
+        "wine_all_you_want_df.dropna(subset=['country'], inplace=True)\r\n",
+        "wine_all_you_want_df.count(0)"
+      ],
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "country        137230\n",
+              "description    137230\n",
+              "designation     94919\n",
+              "points         137230\n",
+              "price          137230\n",
+              "province       137230\n",
+              "region_1       114393\n",
+              "variety        137230\n",
+              "winery         137230\n",
+              "dtype: int64"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 13
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "2VAEOh3ILPm7"
+      },
+      "source": [
+        "Determine if it makes sense to change the name of my features"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 570
+        },
+        "id": "cVg-FFtqJEwp",
+        "outputId": "6efa8f63-afbf-4544-9ccb-c4d89e5b82c1"
+      },
+      "source": [
+        "# it makes more sense for feature \"designation\" to be called \"wine name\"\r\n",
+        "wine_all_you_want_df = wine_all_you_want_df.rename(columns={\"designation\": \"wine_name\"})\r\n",
+        "wine_all_you_want_df"
+      ],
+      "execution_count": 14,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>country</th>\n",
+              "      <th>description</th>\n",
+              "      <th>wine_name</th>\n",
+              "      <th>points</th>\n",
+              "      <th>price</th>\n",
+              "      <th>province</th>\n",
+              "      <th>region_1</th>\n",
+              "      <th>variety</th>\n",
+              "      <th>winery</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>US</td>\n",
+              "      <td>This tremendous 100% varietal wine hails from ...</td>\n",
+              "      <td>Martha's Vineyard</td>\n",
+              "      <td>96</td>\n",
+              "      <td>235.0</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Napa Valley</td>\n",
+              "      <td>Cabernet Sauvignon</td>\n",
+              "      <td>Heitz</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>Spain</td>\n",
+              "      <td>Ripe aromas of fig, blackberry and cassis are ...</td>\n",
+              "      <td>Carodorum Selección Especial Reserva</td>\n",
+              "      <td>96</td>\n",
+              "      <td>110.0</td>\n",
+              "      <td>Northern Spain</td>\n",
+              "      <td>Toro</td>\n",
+              "      <td>Tinta de Toro</td>\n",
+              "      <td>Bodega Carmen Rodríguez</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>US</td>\n",
+              "      <td>Mac Watson honors the memory of a wine once ma...</td>\n",
+              "      <td>Special Selected Late Harvest</td>\n",
+              "      <td>96</td>\n",
+              "      <td>90.0</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Knights Valley</td>\n",
+              "      <td>Sauvignon Blanc</td>\n",
+              "      <td>Macauley</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>US</td>\n",
+              "      <td>This spent 20 months in 30% new French oak, an...</td>\n",
+              "      <td>Reserve</td>\n",
+              "      <td>96</td>\n",
+              "      <td>65.0</td>\n",
+              "      <td>Oregon</td>\n",
+              "      <td>Willamette Valley</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Ponzi</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>France</td>\n",
+              "      <td>This is the top wine from La Bégude, named aft...</td>\n",
+              "      <td>La Brûlade</td>\n",
+              "      <td>95</td>\n",
+              "      <td>66.0</td>\n",
+              "      <td>Provence</td>\n",
+              "      <td>Bandol</td>\n",
+              "      <td>Provence red blend</td>\n",
+              "      <td>Domaine de la Bégude</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>...</th>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "      <td>...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150925</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Many people feel Fiano represents southern Ita...</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Feudi di San Gregorio</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150926</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Offers an intriguing nose with ginger, lime an...</td>\n",
+              "      <td>Cuvée Prestige</td>\n",
+              "      <td>91</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>H.Germain</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150927</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>This classic example comes from a cru vineyard...</td>\n",
+              "      <td>Terre di Dora</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Terredora</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150928</th>\n",
+              "      <td>France</td>\n",
+              "      <td>A perfect salmon shade, with scents of peaches...</td>\n",
+              "      <td>Grand Brut Rosé</td>\n",
+              "      <td>90</td>\n",
+              "      <td>52.0</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Gosset</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150929</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>More Pinot Grigios should taste like this. A r...</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>90</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>Northeastern Italy</td>\n",
+              "      <td>Alto Adige</td>\n",
+              "      <td>Pinot Grigio</td>\n",
+              "      <td>Alois Lageder</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "<p>137230 rows × 9 columns</p>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "       country  ...                   winery\n",
+              "0           US  ...                    Heitz\n",
+              "1        Spain  ...  Bodega Carmen Rodríguez\n",
+              "2           US  ...                 Macauley\n",
+              "3           US  ...                    Ponzi\n",
+              "4       France  ...     Domaine de la Bégude\n",
+              "...        ...  ...                      ...\n",
+              "150925   Italy  ...    Feudi di San Gregorio\n",
+              "150926  France  ...                H.Germain\n",
+              "150927   Italy  ...                Terredora\n",
+              "150928  France  ...                   Gosset\n",
+              "150929   Italy  ...            Alois Lageder\n",
+              "\n",
+              "[137230 rows x 9 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 14
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "fq4JvTbrPOE5"
+      },
+      "source": [
+        "Need to address the fact that there are 40,000+ wines with no name."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "3-_qk9ebL7DK",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 279
+        },
+        "outputId": "e4f85052-abd0-4ae4-ee83-4cb3f8fba625"
+      },
+      "source": [
+        "# manipulate the data by combining features \"variety\" and \"winery\" as a filler/psuedo name for the missing wine names\r\n",
+        "# create a new column to reflect this concatenation (that word always makes me feel like an analyst :)\r\n",
+        "wine_all_you_want_df[\"variety_from_winery\"] = wine_all_you_want_df[\"variety\"] + \"_from_\" + wine_all_you_want_df[\"winery\"]\r\n",
+        "wine_all_you_want_df.head() "
+      ],
+      "execution_count": 18,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>country</th>\n",
+              "      <th>description</th>\n",
+              "      <th>wine_name</th>\n",
+              "      <th>points</th>\n",
+              "      <th>price</th>\n",
+              "      <th>province</th>\n",
+              "      <th>region_1</th>\n",
+              "      <th>variety</th>\n",
+              "      <th>winery</th>\n",
+              "      <th>variety_from_winery</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>0</th>\n",
+              "      <td>US</td>\n",
+              "      <td>This tremendous 100% varietal wine hails from ...</td>\n",
+              "      <td>Martha's Vineyard</td>\n",
+              "      <td>96</td>\n",
+              "      <td>235.0</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Napa Valley</td>\n",
+              "      <td>Cabernet Sauvignon</td>\n",
+              "      <td>Heitz</td>\n",
+              "      <td>Cabernet Sauvignon_from_Heitz</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>1</th>\n",
+              "      <td>Spain</td>\n",
+              "      <td>Ripe aromas of fig, blackberry and cassis are ...</td>\n",
+              "      <td>Carodorum Selección Especial Reserva</td>\n",
+              "      <td>96</td>\n",
+              "      <td>110.0</td>\n",
+              "      <td>Northern Spain</td>\n",
+              "      <td>Toro</td>\n",
+              "      <td>Tinta de Toro</td>\n",
+              "      <td>Bodega Carmen Rodríguez</td>\n",
+              "      <td>Tinta de Toro_from_Bodega Carmen Rodríguez</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>2</th>\n",
+              "      <td>US</td>\n",
+              "      <td>Mac Watson honors the memory of a wine once ma...</td>\n",
+              "      <td>Special Selected Late Harvest</td>\n",
+              "      <td>96</td>\n",
+              "      <td>90.0</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Knights Valley</td>\n",
+              "      <td>Sauvignon Blanc</td>\n",
+              "      <td>Macauley</td>\n",
+              "      <td>Sauvignon Blanc_from_Macauley</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>3</th>\n",
+              "      <td>US</td>\n",
+              "      <td>This spent 20 months in 30% new French oak, an...</td>\n",
+              "      <td>Reserve</td>\n",
+              "      <td>96</td>\n",
+              "      <td>65.0</td>\n",
+              "      <td>Oregon</td>\n",
+              "      <td>Willamette Valley</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Ponzi</td>\n",
+              "      <td>Pinot Noir_from_Ponzi</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>4</th>\n",
+              "      <td>France</td>\n",
+              "      <td>This is the top wine from La Bégude, named aft...</td>\n",
+              "      <td>La Brûlade</td>\n",
+              "      <td>95</td>\n",
+              "      <td>66.0</td>\n",
+              "      <td>Provence</td>\n",
+              "      <td>Bandol</td>\n",
+              "      <td>Provence red blend</td>\n",
+              "      <td>Domaine de la Bégude</td>\n",
+              "      <td>Provence red blend_from_Domaine de la Bégude</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "  country  ...                           variety_from_winery\n",
+              "0      US  ...                 Cabernet Sauvignon_from_Heitz\n",
+              "1   Spain  ...    Tinta de Toro_from_Bodega Carmen Rodríguez\n",
+              "2      US  ...                 Sauvignon Blanc_from_Macauley\n",
+              "3      US  ...                         Pinot Noir_from_Ponzi\n",
+              "4  France  ...  Provence red blend_from_Domaine de la Bégude\n",
+              "\n",
+              "[5 rows x 10 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 18
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "VGGkwBkMR21P"
+      },
+      "source": [
+        "Determine if features need to be reordered for better readability."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 975
+        },
+        "id": "fI6PeWLzRNf-",
+        "outputId": "db63dc52-316e-4c97-b00b-cdd1bbf74f51"
+      },
+      "source": [
+        "column_names = [\"country\", \"province\", \"region_1\", \"variety\", \"winery\", \"variety_from_winery\", \"wine_name\", \"points\", \"price\", \"description\"]\r\n",
+        "\r\n",
+        "wine_all_you_want_df = wine_all_you_want_df.reindex(columns=column_names)\r\n",
+        "# visualize a large sample to visualize feature updates and explore missing data that was evident above in cell 13 (wine_all_you_want_df.count)\r\n",
+        "wine_all_you_want_df.head(15)\r\n",
+        "wine_all_you_want_df.tail(20)"
+      ],
+      "execution_count": 26,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>country</th>\n",
+              "      <th>province</th>\n",
+              "      <th>region_1</th>\n",
+              "      <th>variety</th>\n",
+              "      <th>winery</th>\n",
+              "      <th>variety_from_winery</th>\n",
+              "      <th>wine_name</th>\n",
+              "      <th>points</th>\n",
+              "      <th>price</th>\n",
+              "      <th>description</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>150909</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Nuits-St.-Georges</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Daniel Rion</td>\n",
+              "      <td>Pinot Noir_from_Daniel Rion</td>\n",
+              "      <td>Clos dea Argillieres</td>\n",
+              "      <td>89</td>\n",
+              "      <td>52.0</td>\n",
+              "      <td>This is a lovely, fragrant Burgundy, with a sm...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150910</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Chambolle-Musigny</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Michel Gros</td>\n",
+              "      <td>Pinot Noir_from_Michel Gros</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>89</td>\n",
+              "      <td>38.0</td>\n",
+              "      <td>Scents of graham cracker and malted milk choco...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150911</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Nuits-St.-Georges</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Michel Gros</td>\n",
+              "      <td>Pinot Noir_from_Michel Gros</td>\n",
+              "      <td>Les Chaliots</td>\n",
+              "      <td>87</td>\n",
+              "      <td>37.0</td>\n",
+              "      <td>This needs a good bit of breathing time, then ...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150912</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Chambolle-Musigny</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Daniel Rion</td>\n",
+              "      <td>Pinot Noir_from_Daniel Rion</td>\n",
+              "      <td>Les Charmes</td>\n",
+              "      <td>87</td>\n",
+              "      <td>65.0</td>\n",
+              "      <td>The nose is dominated by the attractive scents...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150913</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Rhône Valley</td>\n",
+              "      <td>Châteauneuf-du-Pape</td>\n",
+              "      <td>Rhône-style Red Blend</td>\n",
+              "      <td>Le Vieux Donjon</td>\n",
+              "      <td>Rhône-style Red Blend_from_Le Vieux Donjon</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>94</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Inky and rustic, yet in a refined manner. This...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150914</th>\n",
+              "      <td>US</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Anderson Valley</td>\n",
+              "      <td>White Riesling</td>\n",
+              "      <td>Navarro</td>\n",
+              "      <td>White Riesling_from_Navarro</td>\n",
+              "      <td>Late Harvest Cluster Select</td>\n",
+              "      <td>94</td>\n",
+              "      <td>25.0</td>\n",
+              "      <td>Old-gold in color, and thick and syrupy. The a...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150915</th>\n",
+              "      <td>US</td>\n",
+              "      <td>California</td>\n",
+              "      <td>North Coast</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Beringer</td>\n",
+              "      <td>White Blend_from_Beringer</td>\n",
+              "      <td>Nightingale</td>\n",
+              "      <td>93</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Decades ago, Beringer’s then-winemaker Myron N...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150916</th>\n",
+              "      <td>US</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Napa Valley</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Schramsberg</td>\n",
+              "      <td>Champagne Blend_from_Schramsberg</td>\n",
+              "      <td>J. Schram</td>\n",
+              "      <td>93</td>\n",
+              "      <td>65.0</td>\n",
+              "      <td>An impressive wine that presents a full bouque...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150917</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Brut Mosaïque</td>\n",
+              "      <td>92</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Light and elegant, this spicy, lively wine is ...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150918</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Cuvée Mosaïque</td>\n",
+              "      <td>92</td>\n",
+              "      <td>38.0</td>\n",
+              "      <td>Jacquart makes a full-bodied, ripe style of Ch...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150919</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>H.Germain</td>\n",
+              "      <td>Champagne Blend_from_H.Germain</td>\n",
+              "      <td>Cuvée President</td>\n",
+              "      <td>91</td>\n",
+              "      <td>37.0</td>\n",
+              "      <td>This classy example opens with a very floral n...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150920</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Northeastern Italy</td>\n",
+              "      <td>Trento</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Letrari</td>\n",
+              "      <td>Champagne Blend_from_Letrari</td>\n",
+              "      <td>Brut Riserva</td>\n",
+              "      <td>91</td>\n",
+              "      <td>19.0</td>\n",
+              "      <td>Rich and mature aromas of smoke, earth and her...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150921</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Blanc de Blancs Brut Mosaïque</td>\n",
+              "      <td>91</td>\n",
+              "      <td>38.0</td>\n",
+              "      <td>Shows some older notes: a bouquet of toasted w...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150923</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Demi-Sec</td>\n",
+              "      <td>91</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Rich and toasty, with tiny bubbles. The bouque...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150924</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Heidsieck &amp; Co Monopole</td>\n",
+              "      <td>Champagne Blend_from_Heidsieck &amp; Co Monopole</td>\n",
+              "      <td>Diamant Bleu</td>\n",
+              "      <td>91</td>\n",
+              "      <td>70.0</td>\n",
+              "      <td>Really fine for a low-acid vintage, there's an...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150925</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Feudi di San Gregorio</td>\n",
+              "      <td>White Blend_from_Feudi di San Gregorio</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>Many people feel Fiano represents southern Ita...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150926</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>H.Germain</td>\n",
+              "      <td>Champagne Blend_from_H.Germain</td>\n",
+              "      <td>Cuvée Prestige</td>\n",
+              "      <td>91</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>Offers an intriguing nose with ginger, lime an...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150927</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Terredora</td>\n",
+              "      <td>White Blend_from_Terredora</td>\n",
+              "      <td>Terre di Dora</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>This classic example comes from a cru vineyard...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150928</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Gosset</td>\n",
+              "      <td>Champagne Blend_from_Gosset</td>\n",
+              "      <td>Grand Brut Rosé</td>\n",
+              "      <td>90</td>\n",
+              "      <td>52.0</td>\n",
+              "      <td>A perfect salmon shade, with scents of peaches...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150929</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Northeastern Italy</td>\n",
+              "      <td>Alto Adige</td>\n",
+              "      <td>Pinot Grigio</td>\n",
+              "      <td>Alois Lageder</td>\n",
+              "      <td>Pinot Grigio_from_Alois Lageder</td>\n",
+              "      <td>NaN</td>\n",
+              "      <td>90</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>More Pinot Grigios should taste like this. A r...</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "       country  ...                                        description\n",
+              "150909  France  ...  This is a lovely, fragrant Burgundy, with a sm...\n",
+              "150910  France  ...  Scents of graham cracker and malted milk choco...\n",
+              "150911  France  ...  This needs a good bit of breathing time, then ...\n",
+              "150912  France  ...  The nose is dominated by the attractive scents...\n",
+              "150913  France  ...  Inky and rustic, yet in a refined manner. This...\n",
+              "150914      US  ...  Old-gold in color, and thick and syrupy. The a...\n",
+              "150915      US  ...  Decades ago, Beringer’s then-winemaker Myron N...\n",
+              "150916      US  ...  An impressive wine that presents a full bouque...\n",
+              "150917  France  ...  Light and elegant, this spicy, lively wine is ...\n",
+              "150918  France  ...  Jacquart makes a full-bodied, ripe style of Ch...\n",
+              "150919  France  ...  This classy example opens with a very floral n...\n",
+              "150920   Italy  ...  Rich and mature aromas of smoke, earth and her...\n",
+              "150921  France  ...  Shows some older notes: a bouquet of toasted w...\n",
+              "150923  France  ...  Rich and toasty, with tiny bubbles. The bouque...\n",
+              "150924  France  ...  Really fine for a low-acid vintage, there's an...\n",
+              "150925   Italy  ...  Many people feel Fiano represents southern Ita...\n",
+              "150926  France  ...  Offers an intriguing nose with ginger, lime an...\n",
+              "150927   Italy  ...  This classic example comes from a cru vineyard...\n",
+              "150928  France  ...  A perfect salmon shade, with scents of peaches...\n",
+              "150929   Italy  ...  More Pinot Grigios should taste like this. A r...\n",
+              "\n",
+              "[20 rows x 10 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 26
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "FtQdwfp_cg4I"
+      },
+      "source": [
+        "Observation: rows 150910,150913,150925,150929 have NaN values, need to manipulate data to address these gaps."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "g_WFoRxMUSow",
+        "outputId": "d9f4a48e-c760-436a-a012-41e5681d5178"
+      },
+      "source": [
+        "# sample above shows missing values in feature \"wine_name\" only, explore all missing values\r\n",
+        "wine_all_you_want_df.info()"
+      ],
+      "execution_count": 28,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "<class 'pandas.core.frame.DataFrame'>\n",
+            "Int64Index: 137230 entries, 0 to 150929\n",
+            "Data columns (total 10 columns):\n",
+            " #   Column               Non-Null Count   Dtype  \n",
+            "---  ------               --------------   -----  \n",
+            " 0   country              137230 non-null  object \n",
+            " 1   province             137230 non-null  object \n",
+            " 2   region_1             114393 non-null  object \n",
+            " 3   variety              137230 non-null  object \n",
+            " 4   winery               137230 non-null  object \n",
+            " 5   variety_from_winery  137230 non-null  object \n",
+            " 6   wine_name            94919 non-null   object \n",
+            " 7   points               137230 non-null  int64  \n",
+            " 8   price                137230 non-null  float64\n",
+            " 9   description          137230 non-null  object \n",
+            "dtypes: float64(1), int64(1), object(8)\n",
+            "memory usage: 11.5+ MB\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "mrUWprZwYoQa"
+      },
+      "source": [
+        "Manipulate data to account for missing values determined from .info\r\n",
+        "Use fill forward to fill in missing values with preceeding value.\r\n",
+        "I love this function, thank you pandas-docs which says in part regarding this method: 'Method to use for filling holes in reindexed Series pad / ffill: propagate last valid observation forward to next valid backfill / bfill: use next valid observation to fill gap.'"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 992
+        },
+        "id": "PQXm93_ybf9g",
+        "outputId": "a953e3eb-b90d-4382-c843-f2530e52d6a7"
+      },
+      "source": [
+        "wine_all_you_want_df = wine_all_you_want_df.fillna(method=\"ffill\", axis=\"columns\")\r\n",
+        "# visualize a large sample to see how the method worked\r\n",
+        "wine_all_you_want_df.tail(20)"
+      ],
+      "execution_count": 30,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/html": [
+              "<div>\n",
+              "<style scoped>\n",
+              "    .dataframe tbody tr th:only-of-type {\n",
+              "        vertical-align: middle;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe tbody tr th {\n",
+              "        vertical-align: top;\n",
+              "    }\n",
+              "\n",
+              "    .dataframe thead th {\n",
+              "        text-align: right;\n",
+              "    }\n",
+              "</style>\n",
+              "<table border=\"1\" class=\"dataframe\">\n",
+              "  <thead>\n",
+              "    <tr style=\"text-align: right;\">\n",
+              "      <th></th>\n",
+              "      <th>country</th>\n",
+              "      <th>province</th>\n",
+              "      <th>region_1</th>\n",
+              "      <th>variety</th>\n",
+              "      <th>winery</th>\n",
+              "      <th>variety_from_winery</th>\n",
+              "      <th>wine_name</th>\n",
+              "      <th>points</th>\n",
+              "      <th>price</th>\n",
+              "      <th>description</th>\n",
+              "    </tr>\n",
+              "  </thead>\n",
+              "  <tbody>\n",
+              "    <tr>\n",
+              "      <th>150909</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Nuits-St.-Georges</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Daniel Rion</td>\n",
+              "      <td>Pinot Noir_from_Daniel Rion</td>\n",
+              "      <td>Clos dea Argillieres</td>\n",
+              "      <td>89</td>\n",
+              "      <td>52.0</td>\n",
+              "      <td>This is a lovely, fragrant Burgundy, with a sm...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150910</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Chambolle-Musigny</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Michel Gros</td>\n",
+              "      <td>Pinot Noir_from_Michel Gros</td>\n",
+              "      <td>Pinot Noir_from_Michel Gros</td>\n",
+              "      <td>89</td>\n",
+              "      <td>38.0</td>\n",
+              "      <td>Scents of graham cracker and malted milk choco...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150911</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Nuits-St.-Georges</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Michel Gros</td>\n",
+              "      <td>Pinot Noir_from_Michel Gros</td>\n",
+              "      <td>Les Chaliots</td>\n",
+              "      <td>87</td>\n",
+              "      <td>37.0</td>\n",
+              "      <td>This needs a good bit of breathing time, then ...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150912</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Burgundy</td>\n",
+              "      <td>Chambolle-Musigny</td>\n",
+              "      <td>Pinot Noir</td>\n",
+              "      <td>Daniel Rion</td>\n",
+              "      <td>Pinot Noir_from_Daniel Rion</td>\n",
+              "      <td>Les Charmes</td>\n",
+              "      <td>87</td>\n",
+              "      <td>65.0</td>\n",
+              "      <td>The nose is dominated by the attractive scents...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150913</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Rhône Valley</td>\n",
+              "      <td>Châteauneuf-du-Pape</td>\n",
+              "      <td>Rhône-style Red Blend</td>\n",
+              "      <td>Le Vieux Donjon</td>\n",
+              "      <td>Rhône-style Red Blend_from_Le Vieux Donjon</td>\n",
+              "      <td>Rhône-style Red Blend_from_Le Vieux Donjon</td>\n",
+              "      <td>94</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Inky and rustic, yet in a refined manner. This...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150914</th>\n",
+              "      <td>US</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Anderson Valley</td>\n",
+              "      <td>White Riesling</td>\n",
+              "      <td>Navarro</td>\n",
+              "      <td>White Riesling_from_Navarro</td>\n",
+              "      <td>Late Harvest Cluster Select</td>\n",
+              "      <td>94</td>\n",
+              "      <td>25.0</td>\n",
+              "      <td>Old-gold in color, and thick and syrupy. The a...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150915</th>\n",
+              "      <td>US</td>\n",
+              "      <td>California</td>\n",
+              "      <td>North Coast</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Beringer</td>\n",
+              "      <td>White Blend_from_Beringer</td>\n",
+              "      <td>Nightingale</td>\n",
+              "      <td>93</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Decades ago, Beringer’s then-winemaker Myron N...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150916</th>\n",
+              "      <td>US</td>\n",
+              "      <td>California</td>\n",
+              "      <td>Napa Valley</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Schramsberg</td>\n",
+              "      <td>Champagne Blend_from_Schramsberg</td>\n",
+              "      <td>J. Schram</td>\n",
+              "      <td>93</td>\n",
+              "      <td>65.0</td>\n",
+              "      <td>An impressive wine that presents a full bouque...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150917</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Brut Mosaïque</td>\n",
+              "      <td>92</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Light and elegant, this spicy, lively wine is ...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150918</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Cuvée Mosaïque</td>\n",
+              "      <td>92</td>\n",
+              "      <td>38.0</td>\n",
+              "      <td>Jacquart makes a full-bodied, ripe style of Ch...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150919</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>H.Germain</td>\n",
+              "      <td>Champagne Blend_from_H.Germain</td>\n",
+              "      <td>Cuvée President</td>\n",
+              "      <td>91</td>\n",
+              "      <td>37.0</td>\n",
+              "      <td>This classy example opens with a very floral n...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150920</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Northeastern Italy</td>\n",
+              "      <td>Trento</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Letrari</td>\n",
+              "      <td>Champagne Blend_from_Letrari</td>\n",
+              "      <td>Brut Riserva</td>\n",
+              "      <td>91</td>\n",
+              "      <td>19.0</td>\n",
+              "      <td>Rich and mature aromas of smoke, earth and her...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150921</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Blanc de Blancs Brut Mosaïque</td>\n",
+              "      <td>91</td>\n",
+              "      <td>38.0</td>\n",
+              "      <td>Shows some older notes: a bouquet of toasted w...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150923</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Jacquart</td>\n",
+              "      <td>Champagne Blend_from_Jacquart</td>\n",
+              "      <td>Demi-Sec</td>\n",
+              "      <td>91</td>\n",
+              "      <td>30.0</td>\n",
+              "      <td>Rich and toasty, with tiny bubbles. The bouque...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150924</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Heidsieck &amp; Co Monopole</td>\n",
+              "      <td>Champagne Blend_from_Heidsieck &amp; Co Monopole</td>\n",
+              "      <td>Diamant Bleu</td>\n",
+              "      <td>91</td>\n",
+              "      <td>70.0</td>\n",
+              "      <td>Really fine for a low-acid vintage, there's an...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150925</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Feudi di San Gregorio</td>\n",
+              "      <td>White Blend_from_Feudi di San Gregorio</td>\n",
+              "      <td>White Blend_from_Feudi di San Gregorio</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>Many people feel Fiano represents southern Ita...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150926</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>H.Germain</td>\n",
+              "      <td>Champagne Blend_from_H.Germain</td>\n",
+              "      <td>Cuvée Prestige</td>\n",
+              "      <td>91</td>\n",
+              "      <td>27.0</td>\n",
+              "      <td>Offers an intriguing nose with ginger, lime an...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150927</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Southern Italy</td>\n",
+              "      <td>Fiano di Avellino</td>\n",
+              "      <td>White Blend</td>\n",
+              "      <td>Terredora</td>\n",
+              "      <td>White Blend_from_Terredora</td>\n",
+              "      <td>Terre di Dora</td>\n",
+              "      <td>91</td>\n",
+              "      <td>20.0</td>\n",
+              "      <td>This classic example comes from a cru vineyard...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150928</th>\n",
+              "      <td>France</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne</td>\n",
+              "      <td>Champagne Blend</td>\n",
+              "      <td>Gosset</td>\n",
+              "      <td>Champagne Blend_from_Gosset</td>\n",
+              "      <td>Grand Brut Rosé</td>\n",
+              "      <td>90</td>\n",
+              "      <td>52.0</td>\n",
+              "      <td>A perfect salmon shade, with scents of peaches...</td>\n",
+              "    </tr>\n",
+              "    <tr>\n",
+              "      <th>150929</th>\n",
+              "      <td>Italy</td>\n",
+              "      <td>Northeastern Italy</td>\n",
+              "      <td>Alto Adige</td>\n",
+              "      <td>Pinot Grigio</td>\n",
+              "      <td>Alois Lageder</td>\n",
+              "      <td>Pinot Grigio_from_Alois Lageder</td>\n",
+              "      <td>Pinot Grigio_from_Alois Lageder</td>\n",
+              "      <td>90</td>\n",
+              "      <td>15.0</td>\n",
+              "      <td>More Pinot Grigios should taste like this. A r...</td>\n",
+              "    </tr>\n",
+              "  </tbody>\n",
+              "</table>\n",
+              "</div>"
+            ],
+            "text/plain": [
+              "       country  ...                                        description\n",
+              "150909  France  ...  This is a lovely, fragrant Burgundy, with a sm...\n",
+              "150910  France  ...  Scents of graham cracker and malted milk choco...\n",
+              "150911  France  ...  This needs a good bit of breathing time, then ...\n",
+              "150912  France  ...  The nose is dominated by the attractive scents...\n",
+              "150913  France  ...  Inky and rustic, yet in a refined manner. This...\n",
+              "150914      US  ...  Old-gold in color, and thick and syrupy. The a...\n",
+              "150915      US  ...  Decades ago, Beringer’s then-winemaker Myron N...\n",
+              "150916      US  ...  An impressive wine that presents a full bouque...\n",
+              "150917  France  ...  Light and elegant, this spicy, lively wine is ...\n",
+              "150918  France  ...  Jacquart makes a full-bodied, ripe style of Ch...\n",
+              "150919  France  ...  This classy example opens with a very floral n...\n",
+              "150920   Italy  ...  Rich and mature aromas of smoke, earth and her...\n",
+              "150921  France  ...  Shows some older notes: a bouquet of toasted w...\n",
+              "150923  France  ...  Rich and toasty, with tiny bubbles. The bouque...\n",
+              "150924  France  ...  Really fine for a low-acid vintage, there's an...\n",
+              "150925   Italy  ...  Many people feel Fiano represents southern Ita...\n",
+              "150926  France  ...  Offers an intriguing nose with ginger, lime an...\n",
+              "150927   Italy  ...  This classic example comes from a cru vineyard...\n",
+              "150928  France  ...  A perfect salmon shade, with scents of peaches...\n",
+              "150929   Italy  ...  More Pinot Grigios should taste like this. A r...\n",
+              "\n",
+              "[20 rows x 10 columns]"
+            ]
+          },
+          "metadata": {
+            "tags": []
+          },
+          "execution_count": 30
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "79zK0iJPecoI"
+      },
+      "source": [
+        ""
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "b_JPosclYPE1"
+      },
+      "source": [
+        "Observation: rows 150910,150913,150925,150929 now have values that are a concatenation of features \"province\" and \"variety_from_winery\""
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "6_cqIMkbe2eP",
+        "outputId": "9dad4e7d-32f7-4b60-a346-19729eeddeb2"
+      },
+      "source": [
+        "#I know this method worked on the 4 samples I was tracking. However need to confirm that fillna method worked on entire dataset\r\n",
+        "wine_all_you_want_df.info()"
+      ],
+      "execution_count": 31,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "<class 'pandas.core.frame.DataFrame'>\n",
+            "Int64Index: 137230 entries, 0 to 150929\n",
+            "Data columns (total 10 columns):\n",
+            " #   Column               Non-Null Count   Dtype  \n",
+            "---  ------               --------------   -----  \n",
+            " 0   country              137230 non-null  object \n",
+            " 1   province             137230 non-null  object \n",
+            " 2   region_1             137230 non-null  object \n",
+            " 3   variety              137230 non-null  object \n",
+            " 4   winery               137230 non-null  object \n",
+            " 5   variety_from_winery  137230 non-null  object \n",
+            " 6   wine_name            137230 non-null  object \n",
+            " 7   points               137230 non-null  int64  \n",
+            " 8   price                137230 non-null  float64\n",
+            " 9   description          137230 non-null  object \n",
+            "dtypes: float64(1), int64(1), object(8)\n",
+            "memory usage: 11.5+ MB\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "EfDQ7UlRftrP"
+      },
+      "source": [
+        "The method worked and points and price maintained the correct dtypes so I can move on to further data cleansing. "
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "MubctBEIfci6"
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
