@@ -2,6 +2,10 @@
 Analyst Nic Pittman and Arica Jackson use Machine Learning and Tableau to analyze wine data and make a reasonable prediction of what someone might like from these catergories. 
 https://ladyj-dev.github.io/Wine_HTML/
 
+# Goals
+* Predict quality of wine by its description
+* Predict type of wine by its description
+
 ![winepic](https://user-images.githubusercontent.com/69124282/106948411-abca8c00-66f9-11eb-82b2-5165b6b5eaeb.jpg)
 
 # Descriptions broken down by words, points and quantity
