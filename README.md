@@ -23,6 +23,8 @@ https://ladyj-dev.github.io/Wine_HTML/
 
 ![qualityML6](https://user-images.githubusercontent.com/69124282/106948490-c43aa680-66f9-11eb-9ff8-d5bd46d135a3.jpg)
 
+# CountVectorizor results
 ![CountVectorizorResults](https://user-images.githubusercontent.com/69124282/106948536-d0266880-66f9-11eb-8ca7-3bd0779b2e29.jpg)
 
+# TFIDF results
 ![TFIDFresults](https://user-images.githubusercontent.com/69124282/106948543-d1f02c00-66f9-11eb-864b-16d8b48b9fa7.jpg)
